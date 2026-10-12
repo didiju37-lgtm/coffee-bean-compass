@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1f2a22" />
+  <meta name="description" content="월별 홀빈 판매와 고객 반응을 비교하고 내 취향에 맞는 원두를 추천하는 개인용 대시보드" />
+  <title>홀빈 취향 대시보드</title>
+  <link rel="stylesheet" href="./styles.css?v=2" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="logo"><span class="bean-mark">●</span><div><b>BEAN NOTE</b><small>홀빈 취향 대시보드</small></div></div>
+      <nav>
+        <button class="nav-item active" data-scroll="overview"><span>⌂</span>이번 달</button>
+        <button class="nav-item" data-scroll="recommend"><span>✦</span>취향 추천</button>
+        <button class="nav-item" data-scroll="comparison"><span>≡</span>월별 비교</button>
+        <button class="nav-item" data-action="open-data"><span>＋</span>데이터 추가</button>
+      </nav>
+      <div class="privacy-note"><span>✓</span><p><b>개인 데이터 보호</b><br />입력한 자료는 이 브라우저에만 저장됩니다.</p></div>
+      <button class="sidebar-reset" id="resetData">샘플 데이터로 초기화</button>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div><p>PERSONAL COFFEE LOG</p><h1>홀빈 판매와 반응을<br />한눈에 비교해요.</h1></div>
+        <div class="top-actions">
+          <label class="month-picker"><span>기준 월</span><select id="monthSelect"></select></label>
+          <button class="ghost-button" id="downloadTemplate">CSV 양식</button>
+          <button class="primary-button" data-action="open-data">데이터 추가</button>
+        </div>
+      </header>
+
+      <section id="overview" class="overview-grid">
+        <article class="metric-card"><span>판매 수량</span><div><b id="salesMetric">0</b><small>봉</small></div><em id="salesDelta">—</em></article>
+        <article class="metric-card"><span>평균 평점</span><div><b id="ratingMetric">0.0</b><small>/ 5</small></div><em id="ratingDelta">—</em></article>
+        <article class="metric-card"><span>재구매 의향</span><div><b id="repurchaseMetric">0</b><small>%</small></div><em id="repurchaseDelta">—</em></article>
+        <article class="metric-card accent"><span>기록된 원두</span><div><b id="beanMetric">0</b><small>종</small></div><em>이번 달 비교 대상</em></article>
+      </section>
+
+      <section class="hero-grid">
+        <article class="card spotlight" id="recommend">
+          <div class="card-label"><span>이번 달 추천</span><small id="confidenceLabel">취향 일치도</small></div>
+          <div class="recommend-body">
+            <div class="score-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="51"></circle><circle id="scoreCircle" class="progress" cx="60" cy="60" r="51"></circle></svg><div><b id="topScore">0</b><small>점</small></div></div>
+            <div class="recommend-copy"><p id="topRoaster">데이터를 준비해 주세요</p><h2 id="topName">추천할 원두가 없습니다</h2><div class="tags" id="topTags"></div><p class="reason" id="topReason">판매 자료와 취향을 입력하면 이유가 보이는 추천을 제공합니다.</p></div>
+          </div>
+          <div class="recommend-foot"><div><span>판매 반응</span><b id="topReaction">—</b></div><div><span>100g 가격</span><b id="topPrice">—</b></div><div><span>추천 추출</span><b id="topBrew">—</b></div></div>
+        </article>
+
+        <article class="card preference-card">
+          <div class="card-label"><span>내 취향</span><button id="resetPrefs">기본값</button></div>
+          <div class="pref-grid">
+            <label><span>주로 마시는 방식</span><select id="purposePref"><option>핸드드립</option><option>에스프레소</option><option>밀크베이스</option><option>상관없음</option></select></label>
+            <label><span>100g 예산</span><div class="range-line"><input id="budgetPref" type="range" min="5000" max="30000" step="1000" value="15000" /><b id="budgetValue">15,000원</b></div></label>
+            <label><span>로스팅</span><div class="range-line"><input id="roastPref" type="range" min="1" max="5" step="1" value="2" /><b id="roastValue">약배전</b></div></label>
+            <label><span>산미</span><div class="range-line"><input id="acidityPref" type="range" min="1" max="5" step="1" value="4" /><b id="acidityValue">선명하게</b></div></label>
+            <label><span>바디</span><div class="range-line"><input id="bodyPref" type="range" min="1" max="5" step="1" value="3" /><b id="bodyValue">균형 있게</b></div></label>
+          </div>
+          <div class="flavor-title"><span>좋아하는 향미</span><small>복수 선택</small></div>
+          <div class="flavor-chips" id="flavorPrefs"></div>
+        </article>
+      </section>
+
+      <section class="middle-grid">
+        <article class="card trend-card">
+          <div class="card-label"><span>월별 판매 흐름</span><small>전체 판매 수량</small></div>
+          <div class="chart-wrap"><canvas id="salesChart" width="760" height="270"></canvas></div>
+        </article>
+        <article class="card ranking-card">
+          <div class="card-label"><span>추천 순위</span><small>취향·반응·판매·가격 종합</small></div>
+          <ol id="rankingList"></ol>
+        </article>
+      </section>
+
+      <section class="card comparison-card" id="comparison">
+        <div class="table-head"><div><p class="section-kicker">MONTHLY COMPARISON</p><h2>원두별 비교</h2></div><div class="table-tools"><input id="tableSearch" type="search" placeholder="원두·로스터리 검색" /><button class="ghost-button" id="exportData">데이터 내보내기</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>원두</th><th>로스터리</th><th>원산지·가공</th><th>판매</th><th>평점</th><th>긍정 반응</th><th>재구매</th><th>100g 가격</th><th>추천 점수</th><th></th></tr></thead><tbody id="beanTable"></tbody></table><div id="emptyTable" class="empty" hidden>조건에 맞는 원두가 없습니다.</div></div>
+      </section>
+
+      <footer><span>BEAN NOTE · PERSONAL DASHBOARD</span><span id="lastSaved">브라우저 로컬 저장</span></footer>
+    </main>
+  </div>
+
+  <dialog id="dataDialog">
+    <form method="dialog" class="dialog-card" id="beanForm">
+      <div class="dialog-head"><div><p class="section-kicker">ADD MONTHLY DATA</p><h2>판매·반응 데이터 추가</h2></div><button value="cancel" class="close-button" aria-label="닫기">×</button></div>
+      <div class="import-row">
+        <label class="import-box"><input id="importFile" type="file" accept=".xlsx,.csv" hidden /><span>↥</span><b>엑셀 또는 CSV 가져오기</b><small>첫 번째 시트의 여러 행을 한 번에 추가</small></label>
+        <div><b>필수 열</b><p>월, 원두명, 로스터리, 판매수량, 평점</p><small>가격·중량·반응·취향 지표는 선택 항목입니다.</small></div>
+      </div>
+      <div class="divider"><span>또는 한 건 직접 입력</span></div>
+      <div class="form-grid">
+        <label>월<input name="month" type="month" required /></label><label>원두명<input name="name" required placeholder="예: 에티오피아 구지" /></label>
+        <label>로스터리<input name="roaster" required placeholder="예: 빈노트 로스터스" /></label><label>원산지<input name="origin" placeholder="예: 에티오피아" /></label>
+        <label>가공 방식<select name="process"><option>워시드</option><option>내추럴</option><option>허니</option><option>무산소</option><option>기타</option></select></label><label>추천 추출<select name="brew"><option>핸드드립</option><option>에스프레소</option><option>밀크베이스</option><option>상관없음</option></select></label>
+        <label>가격(원)<input name="price" type="number" min="0" value="18000" /></label><label>중량(g)<input name="weight" type="number" min="1" value="200" /></label>
+        <label>판매수량<input name="sales" type="number" min="0" required /></label><label>평점(5점)<input name="rating" type="number" min="0" max="5" step="0.1" required /></label>
+        <label>긍정 반응(%)<input name="sentiment" type="number" min="0" max="100" value="80" /></label><label>재구매 의향(%)<input name="repurchase" type="number" min="0" max="100" value="70" /></label>
+        <label>로스팅(1~5)<input name="roast" type="number" min="1" max="5" value="3" /></label><label>산미(1~5)<input name="acidity" type="number" min="1" max="5" value="3" /></label>
+        <label>바디(1~5)<input name="body" type="number" min="1" max="5" value="3" /></label><label>향미<input name="flavors" placeholder="베리, 플로럴, 초콜릿" /></label>
+      </div>
+      <div class="dialog-actions"><button value="cancel" class="ghost-button">취소</button><button id="saveBean" type="button" class="primary-button">저장하기</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="./vendor/exceljs.min.js"></script>
+  <script src="./app.js?v=3"></script>
+</body>
+</html>
